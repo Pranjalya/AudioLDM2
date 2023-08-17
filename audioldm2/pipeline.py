@@ -4,6 +4,7 @@ import re
 import yaml
 import torch
 import torchaudio
+from huggingface_hub import hf_hub_download
 
 import audioldm2.latent_diffusion.modules.phoneme_encoder.text as text
 from audioldm2.latent_diffusion.models.ddpm import LatentDiffusion
@@ -155,6 +156,17 @@ def build_model(ckpt_path=None, config=None, device=None, model_name="audioldm2-
     # # Use text as condition instead of using waveform during training
     config["model"]["params"]["device"] = device
     # config["model"]["params"]["cond_stage_key"] = "text"
+
+    # Download pretrained checkpoint
+    try:
+        repo_id, model_name = config["model"]["params"]["cond_stage_config"]["crossattn_audiomae_generated"]["params"]["cond_stage_config"]["film_clap_cond1"]["params"]["pretrained_path"].rsplit("/", maxsplit=1)
+        checkpoint_path = hf_hub_download(
+            repo_id=repo_id,
+            filename=model_name
+        )
+        config["model"]["params"]["cond_stage_config"]["crossattn_audiomae_generated"]["params"]["cond_stage_config"]["film_clap_cond1"]["params"]["pretrained_path"] = checkpoint_path
+    except:
+        config["model"]["params"]["cond_stage_config"]["crossattn_audiomae_generated"]["params"]["cond_stage_config"]["film_clap_cond1"]["params"]["pretrained_path"] = ""
 
     # No normalization here
     latent_diffusion = LatentDiffusion(**config["model"]["params"])
